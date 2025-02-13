@@ -10,7 +10,24 @@ import {
   User,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-function DeleteConfirmationModal({ isOpen, onClose, onConfirm, isDeleting }) {
+// 🔹 게시글 타입 정의
+interface Post {
+  id: number;
+  title: string;
+  content: string;
+  createAt: string;
+}
+
+// 🔹 삭제 모달 타입 정의
+interface DeleteModalState {
+  isOpen: boolean;
+  postId: number | null;
+}
+function DeleteConfirmationModal({ isOpen, onClose, onConfirm, isDeleting }: DeleteModalState & {
+  onClose: () => void;
+  onConfirm: () => void;
+  isDeleting: boolean;
+}) {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -62,12 +79,12 @@ function BulletinSkeleton() {
 }
 export function BulletinPage() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFetching, setIsFetching] = useState(true);
-  const [posts, setPosts] = useState([]);
-  const [deleteModal, setDeleteModal] = useState({
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isFetching, setIsFetching] = useState<boolean>(true);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [deleteModal, setDeleteModal] = useState<DeleteModalState>({
     isOpen: false,
     postId: null,
   });
@@ -117,7 +134,7 @@ export function BulletinPage() {
     setIsLoggedIn(false);
     navigate("/login");
   };
-  const handleDeleteClick = (postId) => {
+  const handleDeleteClick = (postId : number) => {
     setDeleteModal({
       isOpen: true,
       postId,
@@ -268,6 +285,7 @@ export function BulletinPage() {
       </div>
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
+        postId={deleteModal.postId} // ✅ postId 추가
         onClose={() =>
           setDeleteModal({
             isOpen: false,
