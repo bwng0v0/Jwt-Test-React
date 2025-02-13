@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Mail, Lock, User } from "lucide-react";
+import { Lock, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 export function SignUpForm() {
