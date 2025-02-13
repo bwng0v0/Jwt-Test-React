@@ -43,11 +43,11 @@ export function SignUpForm() {
       );
 
       if (response.ok) {
-        alert("Sign-up successful! Redirecting to login...");
-        navigate("/"); // 회원가입 성공하면 로그인 페이지로 이동
+        alert("회원가입 성공! 로그인 페이지로 리다이렉션 합니다...");
+        navigate("/login"); // 회원가입 성공하면 로그인 페이지로 이동
       } else {
         const data = await response.json();
-        setError(data.message || "User already exists.");
+        setError(data.message || "이미 존재하는 사용자 이름입니다다.");
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -60,7 +60,7 @@ export function SignUpForm() {
     <div className="w-full max-w-md">
       <div className="bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-800">
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-white">Create account</h1>
+          <h1 className="text-2xl font-semibold text-white">회원가입</h1>
           <p className="text-zinc-400 mt-2">Sign up to get started</p>
         </div>
         {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
@@ -142,16 +142,16 @@ export function SignUpForm() {
             disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-zinc-900"
           >
-            {loading ? "Signing up..." : "Create account"}
+            {loading ? "계정 만드는 중..." : "계정 만들기"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-zinc-400">
-          Already have an account?{" "}
+          이미 계정이 있으신가요?{" "}
           <Link
             to="/"
             className="font-medium text-purple-400 hover:text-purple-300"
           >
-            Sign in
+            로그인
           </Link>
         </p>
       </div>
