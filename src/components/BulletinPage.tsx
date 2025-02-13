@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  Search,
   ThumbsUp,
   MessageCircle,
   Share2,
-  Filter,
   Lock,
   Plus,
   Trash2,
