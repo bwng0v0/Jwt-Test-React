@@ -1,11 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
 export function SignUpForm() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle sign up logic here
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        "https://wide-dulcea-bwng0v0-c69673af.koyeb.app/api/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            password: formData.password,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        alert("Sign-up successful! Redirecting to login...");
+        navigate("/"); // 회원가입 성공하면 로그인 페이지로 이동
+      } else {
+        const data = await response.json();
+        setError(data.message || "User already exists.");
+      }
+    } catch (error) {
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md">
       <div className="bg-zinc-900 rounded-lg shadow-lg p-8 border border-zinc-800">
@@ -13,48 +63,29 @@ export function SignUpForm() {
           <h1 className="text-2xl font-semibold text-white">Create account</h1>
           <p className="text-zinc-400 mt-2">Sign up to get started</p>
         </div>
+        {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label
-              htmlFor="name"
+              htmlFor="username"
               className="block text-sm font-medium text-zinc-300 mb-1"
             >
-              Full name
+              Username
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <User className="h-5 w-5 text-zinc-500" />
               </div>
               <input
-                id="name"
-                name="name"
+                id="username"
+                name="username"
                 type="text"
-                autoComplete="name"
+                autoComplete="username"
                 required
+                value={formData.username}
+                onChange={handleChange}
                 className="block w-full pl-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md shadow-sm placeholder-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Enter your full name"
-              />
-            </div>
-          </div>
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-zinc-300 mb-1"
-            >
-              Email address
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-zinc-500" />
-              </div>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="block w-full pl-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md shadow-sm placeholder-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
           </div>
@@ -75,6 +106,8 @@ export function SignUpForm() {
                 type="password"
                 autoComplete="new-password"
                 required
+                value={formData.password}
+                onChange={handleChange}
                 className="block w-full pl-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md shadow-sm placeholder-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Create a password"
               />
@@ -82,7 +115,7 @@ export function SignUpForm() {
           </div>
           <div>
             <label
-              htmlFor="password-confirm"
+              htmlFor="confirmPassword"
               className="block text-sm font-medium text-zinc-300 mb-1"
             >
               Confirm password
@@ -92,11 +125,13 @@ export function SignUpForm() {
                 <Lock className="h-5 w-5 text-zinc-500" />
               </div>
               <input
-                id="password-confirm"
-                name="password-confirm"
+                id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 required
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className="block w-full pl-10 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-md shadow-sm placeholder-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                 placeholder="Confirm your password"
               />
@@ -104,9 +139,10 @@ export function SignUpForm() {
           </div>
           <button
             type="submit"
+            disabled={loading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 focus:ring-offset-zinc-900"
           >
-            Create account
+            {loading ? "Signing up..." : "Create account"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-zinc-400">
@@ -122,4 +158,5 @@ export function SignUpForm() {
     </div>
   );
 }
+
 export default SignUpForm;
