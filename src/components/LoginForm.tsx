@@ -28,21 +28,39 @@ export function LoginForm() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      console.log("🔹 서버 응답 상태코드:", response.status); // ✅ 상태코드 확인
+      let data;
+      const contentLength = response.headers.get("content-length"); // ✅ 응답 크기 확인
+      if (contentLength && parseInt(contentLength, 10) > 0) {
+        data = await response.json(); // ✅ JSON 파싱 가능할 때만 수행
+      } else {
+        data = {}; // ✅ 빈 객체 반환하여 JSON 오류 방지
+      }
+      
+      console.log("🔹 서버 응답 데이터:", data); // ✅ 응답 데이터 확인
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed. Please try again.");
+        if (response.status === 400) {
+          setError(data.message || "잘못된 요청입니다. 입력값을 확인해주세요.");
+        } else if (response.status === 401) {
+          setError("로그인 실패: 아이디 또는 비밀번호가 잘못되었습니다."); // ✅ 기본 메시지
+        } else if (response.status === 403) {
+          setError("접근이 거부되었습니다. 관리자에게 문의하세요.");
+        } else {
+          setError("⚠️ 로그인 실패: 예상치 못한 오류가 발생했습니다.");
+        }
+        return;
       }
 
       // ✅ 로그인 성공: 토큰과 username 저장
       localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("username", formData.username); // 🔥 유저이름 저장
+      localStorage.setItem("username", formData.username);
 
-      // ✅ 로그인 성공 후 페이지 이동 (예: 메인 페이지)
+      // ✅ 로그인 성공 후 페이지 이동
       window.location.href = "/";
-
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      console.error("로그인 요청 중 오류 발생:", err);
+      setError("네트워크 오류: 인터넷 연결을 확인하세요.");
     } finally {
       setLoading(false);
     }
