@@ -20,33 +20,41 @@ export function LoginForm() {
     setError("");
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formData),
+        });
 
-      const data = await response.json();
+        // 🔥 응답 본문이 없는 경우 대비
+        let data;
+        try {
+            data = await response.json();
+        } catch (error) {
+            data = null; // 응답이 비어있으면 null 처리
+        }
 
-      if (!response.ok) {
-        throw new Error(data.message || "Login failed. Please try again.");
-      }
+        // 🔥 응답이 성공(200~299)이 아닐 경우 예외 처리
+        if (!response.ok) {
+            throw new Error(data?.message || "Login failed. Please try again.");
+        }
 
-      // ✅ 로그인 성공: 토큰과 username 저장
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("username", formData.username); // 🔥 유저이름 저장
+        // ✅ 로그인 성공: 토큰과 username 저장
+        localStorage.setItem("accessToken", data?.accessToken || ""); // 🚨 data가 null이면 빈 문자열로 저장
+        localStorage.setItem("username", formData.username); // 🔥 유저이름 저장
 
-      // ✅ 로그인 성공 후 페이지 이동 (예: 메인 페이지)
-      window.location.href = "/";
+        // ✅ 로그인 성공 후 페이지 이동
+        window.location.href = "/";
 
     } catch (err: any) {
-      setError(err.message);
+        setError(err.message);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+};
+
 
   return (
     <div className="w-full max-w-md">
