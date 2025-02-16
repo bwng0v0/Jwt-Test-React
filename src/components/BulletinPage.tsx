@@ -109,7 +109,7 @@ export function BulletinPage() {
     }
     try {
       const response = await fetch(
-        "https://wide-dulcea-bwng0v0-c69673af.koyeb.app/api/posts",
+        "https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts",
         {
           method: "GET",
           headers: {

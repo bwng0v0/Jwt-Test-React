@@ -11,7 +11,7 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const API_URL = "https://wide-dulcea-bwng0v0-c69673af.koyeb.app/api/auth/login";
+  const API_URL = "https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/auth/login";
 
   // ✅ 로그인 요청 핸들러
   const handleSubmit = async (e: React.FormEvent) => {

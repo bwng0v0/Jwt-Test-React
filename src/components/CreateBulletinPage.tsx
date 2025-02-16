@@ -27,7 +27,7 @@ export function CreateBulletinPage() {
     }
 
     try {
-      const response = await fetch("https://wide-dulcea-bwng0v0-c69673af.koyeb.app/api/posts", {
+      const response = await fetch("https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
