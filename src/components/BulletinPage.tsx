@@ -146,7 +146,7 @@ export function BulletinPage() {
     const token = localStorage.getItem("accessToken");
     try {
       const response = await fetch(
-        `https://wide-dulcea-bwng0v0-c69673af.koyeb.app/api/posts/${deleteModal.postId}`,
+        `https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts/${deleteModal.postId}`,
         {
           method: "DELETE",
           headers: {
