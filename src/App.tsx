@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { LoginForm } from "./components/LoginForm";
 import { SignUpForm } from "./components/SignUpForm";
-import { BulletinPage } from "./components/BulletinPage";
-import CreateBulletinPage from "./components/CreateBulletinPage";
+import { BulletinPage } from "./pages/BulletinPage";
+import CreateBulletinPage from "./pages/CreateBulletinPage";
 
 export function App() {
   return (
