@@ -39,7 +39,7 @@ export function LoginForm() {
       localStorage.setItem("username", formData.username);
 
       // ✅ 로그인 성공 후 페이지 이동
-      window.location.href = "/";
+      // window.location.href = "/";
 
     } catch (err: any) {
       setError(err.message);
