@@ -11,50 +11,42 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const API_URL = "https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/auth/login";
+  const API_URL = `${import.meta.env.VITE_API_URL}/api/auth/login`;
+  
 
-  // ✅ 로그인 요청 핸들러
+
+  // ✅ 로그인 요청 핸들러 (Set-Cookie 방식)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formData),
-        });
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // ✅ 쿠키 포함하여 요청
+        body: JSON.stringify(formData),
+      });
 
-        // 🔥 응답 본문이 없는 경우 대비
-        let data;
-        try {
-            data = await response.json();
-        } catch (error) {
-            data = null; // 응답이 비어있으면 null 처리
-        }
+      if (!response.ok) {
+        throw new Error("Login failed. Please try again.");
+      }
 
-        // 🔥 응답이 성공(200~299)이 아닐 경우 예외 처리
-        if (!response.ok) {
-            throw new Error(data?.message || "Login failed. Please try again.");
-        }
+      // ✅ 성공적으로 로그인하면 username을 로컬 스토리지에 저장
+      localStorage.setItem("username", formData.username);
 
-        // ✅ 로그인 성공: 토큰과 username 저장
-        localStorage.setItem("accessToken", data?.accessToken || ""); // 🚨 data가 null이면 빈 문자열로 저장
-        localStorage.setItem("username", formData.username); // 🔥 유저이름 저장
-
-        // ✅ 로그인 성공 후 페이지 이동
-        window.location.href = "/";
+      // ✅ 로그인 성공 후 페이지 이동
+      window.location.href = "/";
 
     } catch (err: any) {
-        setError(err.message);
+      setError(err.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
-
+  };
 
   return (
     <div className="w-full max-w-md">

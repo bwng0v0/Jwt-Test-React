@@ -29,12 +29,13 @@ export function SignUpForm() {
 
     try {
       const response = await fetch(
-        "https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/auth/register",
+        "https://jwt-production-a8d6.up.railway.app/api/auth/register",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include", // 쿠키 인증 추가
           body: JSON.stringify({
             username: formData.username,
             password: formData.password,
