@@ -10,6 +10,7 @@ import {
   User,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+
 // 🔹 게시글 타입 정의
 interface Post {
   id: number;
@@ -18,11 +19,17 @@ interface Post {
   createAt: string;
 }
 
+// 🔹 사용자 타입 정의
+interface User {
+  username: string;
+}
+
 // 🔹 삭제 모달 타입 정의
 interface DeleteModalState {
   isOpen: boolean;
   postId: number | null;
 }
+
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, isDeleting }: DeleteModalState & {
   onClose: () => void;
   onConfirm: () => void;
@@ -68,6 +75,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, isDeleting }: Del
     </div>
   );
 }
+
 function BulletinSkeleton() {
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 animate-pulse">
@@ -77,10 +85,11 @@ function BulletinSkeleton() {
     </div>
   );
 }
+
 export function BulletinPage() {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>("");
+  const [userData, setUserData] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isFetching, setIsFetching] = useState<boolean>(true);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -89,38 +98,66 @@ export function BulletinPage() {
     postId: null,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // 사용자 인증 정보 확인
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const storedUsername = localStorage.getItem("username"); // 🔥 저장된 유저이름 가져오기
-    if (token && storedUsername) {
-      setIsLoggedIn(true);
-      setUserName(storedUsername); // ✅ 유저이름 설정
-    }
-    setIsLoading(false);
-  }, []);  
+    checkAuthStatus();
+  }, []);
+  
+  // 게시글 데이터 가져오기
   useEffect(() => {
     fetchPosts();
-  }, []);
-  const fetchPosts = async () => {
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setIsFetching(false);
-      return;
-    }
+  }, [isLoggedIn]);
+
+  // 사용자 인증 상태 확인 함수 (api/auth/me 사용)
+  const checkAuthStatus = async () => {
     try {
       const response = await fetch(
-        "https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts",
+        "https://jwt-production-a8d6.up.railway.app/api/auth/me",
         {
           method: "GET",
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
-        },
+        }
       );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsLoggedIn(true);
+        setUserData(data); // 서버에서 받은 사용자 정보 저장
+      } else {
+        setIsLoggedIn(false);
+        setUserData(null);
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      setIsLoggedIn(false);
+      setUserData(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 게시글 가져오기 함수
+  const fetchPosts = async () => {
+    try {
+      const response = await fetch(
+        "https://jwt-production-a8d6.up.railway.app/api/posts",
+        {
+          method: "GET",
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
       if (!response.ok) {
         throw new Error("Failed to fetch posts");
       }
+      
       const data = await response.json();
       setPosts(data);
     } catch (error) {
@@ -129,34 +166,59 @@ export function BulletinPage() {
       setIsFetching(false);
     }
   };
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setIsLoggedIn(false);
-    navigate("/login");
+
+  // 로그아웃 처리 함수 (api/auth/logout 사용)
+  const handleLogout = async () => {
+    try {
+      const response = await fetch(
+        "https://jwt-production-a8d6.up.railway.app/api/auth/logout",
+        {
+          method: "POST",
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      if (response.ok) {
+        setIsLoggedIn(false);
+        setUserData(null);
+        navigate("/login");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
   };
-  const handleDeleteClick = (postId : number) => {
+
+  // 게시글 삭제 모달 열기
+  const handleDeleteClick = (postId: number) => {
     setDeleteModal({
       isOpen: true,
       postId,
     });
   };
+
+  // 게시글 삭제 처리
   const handleDeleteConfirm = async () => {
     if (!deleteModal.postId) return;
     setIsDeleting(true);
-    const token = localStorage.getItem("accessToken");
+    
     try {
       const response = await fetch(
-        `https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts/${deleteModal.postId}`,
+        `https://jwt-production-a8d6.up.railway.app/api/posts/${deleteModal.postId}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
+        }
       );
+      
       if (!response.ok) {
         throw new Error("Failed to delete post");
       }
+      
       setPosts(posts.filter((post) => post.id !== deleteModal.postId));
     } catch (error) {
       console.error("Error deleting post:", error);
@@ -168,18 +230,19 @@ export function BulletinPage() {
       });
     }
   };
+
   return (
     <div className="min-h-screen w-full bg-black">
       <header className="bg-zinc-900 border-b border-zinc-800 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold text-white">Demo Project</h1>
           <div className="flex items-center space-x-4">
-            {isLoggedIn ? (
+            {isLoggedIn && userData ? (
               <>
                 <div className="flex items-center space-x-2 text-white px-4 py-2 rounded-md bg-zinc-800">
-  <User className="h-5 w-5 text-zinc-400" /> {/* 🔥 아이콘 추가 */}
-  <span>{userName}</span>
-</div>
+                  <User className="h-5 w-5 text-zinc-400" />
+                  <span>{userData.username}</span>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="text-white hover:text-red-400 px-4 py-2"
@@ -285,7 +348,7 @@ export function BulletinPage() {
       </div>
       <DeleteConfirmationModal
         isOpen={deleteModal.isOpen}
-        postId={deleteModal.postId} // ✅ postId 추가
+        postId={deleteModal.postId}
         onClose={() =>
           setDeleteModal({
             isOpen: false,
@@ -298,4 +361,5 @@ export function BulletinPage() {
     </div>
   );
 }
+
 export default BulletinPage;

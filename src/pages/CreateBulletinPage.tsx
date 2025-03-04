@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -11,39 +11,69 @@ export function CreateBulletinPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [userData, setUserData] = useState({ username: "" });
 
   const categories = ["공지사항", "이벤트", "가이드라인", "일반"];
+
+  // 컴포넌트 마운트 시 사용자 정보 가져오기
+  useEffect(() => {
+    checkAuthStatus();
+  }, []);
+
+  // 사용자 인증 상태 확인 함수
+  const checkAuthStatus = async () => {
+    try {
+      const response = await fetch(
+        "https://jwt-production-a8d6.up.railway.app/api/auth/me",
+        {
+          method: "GET",
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUserData(data);
+      } else {
+        // 로그인되지 않은 경우 메인 페이지로 리다이렉트
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error checking auth status:", error);
+      navigate("/");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const token = localStorage.getItem("accessToken");
-    if (!token) {
-      setError("게시글을 작성하려면 로그인해야 합니다.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch("https://compatible-isobel-bwng0v0-1bf7599a.koyeb.app/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // ✅ 토큰 추가
-        },
-        body: JSON.stringify({
-          title: formData.title,
-          content: formData.content,
-        }),
-      });
+      const response = await fetch(
+        "https://jwt-production-a8d6.up.railway.app/api/posts", 
+        {
+          method: "POST",
+          credentials: "include", // HttpOnly 쿠키를 위해 credentials 포함
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title: formData.title,
+            content: formData.content,
+            category: formData.category,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("게시글을 생성하는 데 실패했습니다.");
       }
 
-      navigate("/"); // ✅ 게시글 목록 페이지로 이동
+      navigate("/"); // 게시글 목록 페이지로 이동
     } catch (error) {
       setError("게시글을 생성하는 중 오류가 발생했습니다. 다시 시도해 주세요.");
     } finally {
@@ -52,8 +82,6 @@ export function CreateBulletinPage() {
   };
 
   const PreviewBulletin = () => {
-    const storedUsername = localStorage.getItem("username") || "익명"; // ✅ 로컬에서 username 가져오기
-
     return (
       <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
         <div className="flex items-start justify-between mb-4">
@@ -62,7 +90,7 @@ export function CreateBulletinPage() {
               {formData.title || "게시글 제목"}
             </h2>
             <div className="flex items-center text-sm text-zinc-400">
-              <span>{storedUsername}</span> {/* ✅ 유저명 적용 */}
+              <span>{userData.username || "사용자"}</span>
               <span className="mx-2">•</span>
               <span>{new Date().toLocaleDateString()}</span>
             </div>
@@ -97,7 +125,7 @@ export function CreateBulletinPage() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && <p className="text-red-500">{error}</p>} {/* 오류 메시지 표시 */}
+            {error && <p className="text-red-500">{error}</p>}
 
             <div>
               <label
@@ -185,7 +213,6 @@ export function CreateBulletinPage() {
             </div>
           </form>
 
-          {/* ✅ 미리보기 항상 표시 */}
           <div className="lg:sticky lg:top-24">
             <h2 className="text-zinc-300 text-sm font-medium mb-4">
               미리보기
